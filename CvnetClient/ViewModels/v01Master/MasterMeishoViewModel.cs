@@ -27,7 +27,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 namespace CvnetClient.ViewModels {
-	public partial class MasterMeishoViewModel123 : BaseViewModel {
+	public partial class MasterMeishoViewModel : BaseViewModel {
 		[ObservableProperty]
 		List<string>? listKubun;
 		[ObservableProperty]
