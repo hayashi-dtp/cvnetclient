@@ -289,19 +289,42 @@ namespace CvnetClient.ViewModels {
 		/// </summary>
 		[RelayCommand]
 		void DoDelete() {
+			// 事前チェック
 			if (!ClientLib.MessageBox(this, "削除しますか？")) return;
-			if (EditMeisho == null) return;
-			var ret = AppData.Http!.AspxSqlExe(DBDef.DB_DML.DELETE, "Master_MEISHO", EditMeisho.SeqNo, EditMeisho.VdateUpdate.ToString(),
-				new string[0], new string[0] );
+			if (EditMeisho == null || SelectedMeisho == null || ListMeisho == null) {
+				ClientLib.MessageBoxError(this, "削除対象が選択されていません");
+				return;
+			}
+
+			// 削除実行
+			var ret = AppData.Http!.AspxSqlExe(
+				DBDef.DB_DML.DELETE, 
+				"Master_MEISHO", 
+				EditMeisho.SeqNo, 
+				EditMeisho.VdateUpdate.ToString(),
+				Array.Empty<string>(), 
+				Array.Empty<string>());
+
+			// 削除結果の処理
 			if (ret.Code == 0) {
-				if(SelectedMeisho!= null) {
-					ListMeisho!.Remove(SelectedMeisho);
-					var item = ListMeisho.Where(c => c.MeishoCd == ListMeisho.Min(c => c.MeishoCd)).FirstOrDefault();
-					SelectedMeisho = item;
+				// 削除前に次に選択する項目を決定
+				var currentIndex = ListMeisho.IndexOf(SelectedMeisho);
+				
+				// リストから削除
+				ListMeisho.Remove(SelectedMeisho);
+
+				// 削除後の選択対象を設定
+				if (ListMeisho.Count > 0) {
+					// 削除した位置、または最後の項目を選択
+					var newIndex = Math.Min(currentIndex, ListMeisho.Count - 1);
+					SelectedMeisho = ListMeisho[newIndex];
+				}
+				else {
+					SelectedMeisho = null;
 				}
 			}
 			else {
-				ClientLib.MessageBoxError(this, ret.Code.ToString());
+				ClientLib.MessageBoxError(this, $"削除に失敗しました (エラーコード: {ret.Code})");
 			}
 		}
 		string printsql = """
